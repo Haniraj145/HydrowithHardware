@@ -1,0 +1,11 @@
+{
+  "model": "tf_efficientnetv2_s.in21k_ft_in1k",
+  "dropout_rate": 0.3,
+  "epochs": 20,
+  "batch_size": 32,
+  "lr": 0.0003,
+  "weight_decay": 0.0001,
+  "patience": 5,
+  "seed": 42,
+  "image_size": 224
+}

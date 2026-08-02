@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Python / Environments
+.venv
+venv
+**/venv
+__pycache__
+*.pyc
+
+# ML Models & Datasets (exceeds GitHub file & repo limits)
+*.pth
+*.h5
+*.onnx
+*.bin
+ml-service/dataset/*
+!ml-service/dataset/.gitkeep
+ml-service/uploads/*
+!ml-service/uploads/.gitkeep
+
+# Build / Temp output
+dist
+build
+.tanstack
+.vercel
+build.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode
+.idea
