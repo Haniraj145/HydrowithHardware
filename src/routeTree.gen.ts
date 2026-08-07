@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FarmsRouteImport } from './routes/farms'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as LiveMonitorRouteImport } from './routes/live-monitor'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -50,6 +51,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LiveMonitorRoute = LiveMonitorRouteImport.update({
+  id: '/live-monitor',
+  path: '/live-monitor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/farms': typeof FarmsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/live-monitor': typeof LiveMonitorRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/farms': typeof FarmsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/live-monitor': typeof LiveMonitorRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/farms': typeof FarmsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/live-monitor': typeof LiveMonitorRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/farms'
     | '/forgot-password'
     | '/how-it-works'
+    | '/live-monitor'
     | '/login'
     | '/reset-password'
     | '/signup'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/farms'
     | '/forgot-password'
     | '/how-it-works'
+    | '/live-monitor'
     | '/login'
     | '/reset-password'
     | '/signup'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/farms'
     | '/forgot-password'
     | '/how-it-works'
+    | '/live-monitor'
     | '/login'
     | '/reset-password'
     | '/signup'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   FarmsRoute: typeof FarmsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  LiveMonitorRoute: typeof LiveMonitorRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/live-monitor': {
+      id: '/live-monitor'
+      path: '/live-monitor'
+      fullPath: '/live-monitor'
+      preLoaderRoute: typeof LiveMonitorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   FarmsRoute: FarmsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
+  LiveMonitorRoute: LiveMonitorRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,

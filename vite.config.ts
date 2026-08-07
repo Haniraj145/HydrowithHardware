@@ -22,6 +22,14 @@ export default defineConfig({
         "@tensorflow-models/mobilenet",
       ],
     },
+    middlewareMode: false,
+    ssr: {
+      noExternal: [],
+    },
+  },
+
+  server: {
+    middlewareMode: false,
   },
 
   nitro: {

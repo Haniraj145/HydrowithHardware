@@ -35,7 +35,7 @@ DISEASE_INFO = {
         "recommendation": [
             "Improve air circulation by spacing plants further apart or pruning dense growth.",
             "Avoid overhead watering; water at the base to keep foliage dry.",
-            "Remove and dispose of heavily infected leaves — do not compost them.",
+            "Remove and dispose of heavily infected leaves - do not compost them.",
             "Apply a sulfur-based or potassium bicarbonate fungicide at first sign of spread.",
             "Reduce nitrogen-heavy fertilization, which encourages tender, susceptible growth.",
         ],

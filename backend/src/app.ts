@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import healthRoutes from "./modules/health/health.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import aiRoutes from "./modules/ai/ai.routes";
+import sensorRoutes from "./modules/sensors/sensor.routes";
 import { errorMiddleware } from "./middleware/error.middleware";
 
 
@@ -39,6 +40,7 @@ app.use(cookieParser());
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/sensors", sensorRoutes);
 app.use(errorMiddleware);
 
 export default app;

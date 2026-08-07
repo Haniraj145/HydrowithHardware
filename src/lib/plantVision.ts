@@ -1,154 +1,143 @@
-let tfModule: typeof import("@tensorflow/tfjs") | null = null;
-let mobilenetModule: typeof import("@tensorflow-models/mobilenet") | null = null;
-
 export type PlantAnalysis = {
   healthy: boolean;
   label: string;
   confidence: number;
   healthScore: number;
-  raw: { className: string; probability: number }[];
+  raw: {
+    className: string;
+    probability: number;
+  }[];
 };
 
-let modelPromise: Promise<any> | null = null;
-
-/**
- * Loads TensorFlow.js + MobileNet only when needed.
- */
-async function getModel() {
-  if (!modelPromise) {
-    if (!tfModule) {
-      tfModule = await import("@tensorflow/tfjs");
-    }
-
-    if (!mobilenetModule) {
-      mobilenetModule = await import("@tensorflow-models/mobilenet");
-    }
-
-    modelPromise = mobilenetModule.load({
-      version: 2,
-      alpha: 1.0,
-    });
-  }
-
-  return modelPromise;
-}
-
-export async function preloadPlantModel() {
-  await getModel();
-}
-
-// Keywords among ImageNet classes that tend to correlate with wilted,
-// diseased, dry, or generally unhealthy-looking foliage/plant matter.
-const UNHEALTHY_HINTS = [
-  "fungus", "mushroom", "mold", "rot", "dead", "dry", "wilt", "brown",
-  "rust", "spider web", "moth", "insect", "worm", "slug", "snail",
-  "caterpillar", "weevil",
-];
-
-const PLANT_HINTS = [
-  "leaf", "plant", "flower", "tree", "fern", "vine", "herb", "corn",
-  "cabbage", "lettuce", "cress", "artichoke", "cucumber", "squash",
-  "mushroom", "daisy", "rapeseed", "buckeye",
-];
-
-export async function analyzePlantImage(source: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement): Promise<PlantAnalysis> {
-  const model = await getModel();
-  const predictions = await model.classify(source, 5);
-
-  const topText = predictions.map((p) => p.className.toLowerCase()).join(", ");
-  const hasUnhealthyHint = UNHEALTHY_HINTS.some((k) => topText.includes(k));
-  const looksLikePlant = PLANT_HINTS.some((k) => topText.includes(k));
-
-  const top = predictions[0] ?? { className: "Unknown", probability: 0 };
-  const confidence = top.probability;
-
-  const healthy = !hasUnhealthyHint;
-  const healthScore = Math.round(
-    healthy
-      ? 82 + confidence * 15 // 82-97%
-      : 35 + (1 - confidence) * 20, // lower when confident it's something bad
-  );
-
-  const label = hasUnhealthyHint
-    ? "Possible stress / disease signs"
-    : looksLikePlant
-      ? "Healthy foliage"
-      : "No clear leaf detected";
-
-  return {
-    healthy,
-    label,
-    confidence,
-    healthScore: Math.max(0, Math.min(100, healthScore)),
-    raw: predictions.map((p) => ({ className: p.className, probability: p.probability })),
-  };
-}
-export const tf = {
-  ready: async () => {
-    if (!tfModule) {
-      tfModule = await import("@tensorflow/tfjs");
-    }
-    return tfModule.ready();
-  },
-};
-
-// ---------------------------------------------------------------------------
-// ML service integration (Python/Flask) — used for the detailed diagnosis
-// cards on the "Upload photo from device" flow on the AI Vision page.
-// This is separate from the MobileNet-based analyzePlantImage() above, which
-// keeps powering the lightweight live-camera scan.
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Kindwise (Plant.id) integration — a more precise, third-party disease
-// identification layer returned by the backend alongside the local model's
-// result. See ml-service/kindwise_client.py for how this is populated.
-// ---------------------------------------------------------------------------
-export interface KindwiseTreatment {
-  biological: string | null;
-  chemical: string | null;
-  prevention: string | null;
-}
-
-export interface KindwiseAlternative {
-  name: string;
-  probability: number; // 0-100
-}
-
-export interface KindwiseAnalysis {
+export type KindwiseAnalysis = {
   available: boolean;
   error?: string;
   healthy?: boolean;
   disease?: string;
-  confidence?: number; // 0-100
-  description?: string | null;
-  cause?: string | null;
-  treatment?: KindwiseTreatment | null;
-  alternatives?: KindwiseAlternative[];
-}
+  confidence?: number;
+  cause?: string;
+  description?: string;
+  treatment?: Record<string, string>;
+  alternatives?: Array<{ name: string; probability: number }>;
+};
 
-export interface MLPlantDiagnosis {
+export type MLPlantDiagnosis = {
   diseaseName: string;
   confidence: number;
   healthy: boolean;
-
+  healthScore: number;
   severity: string;
-  risk: string;
-
+  risk: "Low" | "Medium" | "High";
   description: string;
   cause: string;
-
   recommendation: string[];
-
   nutrientDeficiency: string;
   colorAnalysis: string;
   dryLeaf: boolean;
-
   npk: {
     nitrogen: number;
     phosphorus: number;
     potassium: number;
   };
-
   kindwise?: KindwiseAnalysis;
+};
+
+let model: any = null;
+
+async function getModel() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  if (!model) {
+    const tf = await import("@tensorflow/tfjs");
+    const mobilenet = await import("@tensorflow-models/mobilenet");
+    await tf.ready();
+    model = await mobilenet.load({
+      version: 2,
+      alpha: 1,
+    });
+  }
+  return model;
+}
+
+export async function preloadPlantModel() {
+  if (typeof window === "undefined") return;
+  await getModel();
+}
+
+const UNHEALTHY_HINTS = [
+  "fungus",
+  "mushroom",
+  "mold",
+  "rot",
+  "dead",
+  "dry",
+  "wilt",
+  "brown",
+  "rust",
+  "spider",
+  "worm",
+  "slug",
+  "snail",
+  "caterpillar",
+];
+
+const PLANT_HINTS = [
+  "leaf",
+  "plant",
+  "flower",
+  "tree",
+  "fern",
+  "vine",
+  "herb",
+  "corn",
+  "cabbage",
+  "lettuce",
+  "cucumber",
+];
+
+export async function analyzePlantImage(
+  image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement
+): Promise<PlantAnalysis> {
+  if (typeof window === "undefined") {
+    return {
+      healthy: true,
+      label: "Unknown",
+      confidence: 0,
+      healthScore: 100,
+      raw: [],
+    };
+  }
+
+  const loadedModel = await getModel();
+  if (!loadedModel) {
+    return {
+      healthy: true,
+      label: "Model unavailable",
+      confidence: 0,
+      healthScore: 100,
+      raw: [],
+    };
+  }
+
+  const predictions = await loadedModel.classify(image, 5);
+  const top = predictions[0] || { className: "Unknown", probability: 0 };
+  const text = predictions
+    .map((p: { className: string }) => p.className.toLowerCase())
+    .join(",");
+
+  const unhealthy = UNHEALTHY_HINTS.some((x) => text.includes(x));
+  const plant = PLANT_HINTS.some((x) => text.includes(x));
+
+  return {
+    healthy: !unhealthy,
+    label: unhealthy
+      ? "Possible disease detected"
+      : plant
+      ? "Healthy Leaf"
+      : "Unknown",
+    confidence: top.probability,
+    healthScore: unhealthy ? 45 : 95,
+    raw: predictions,
+  };
 }

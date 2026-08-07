@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Droplets, Thermometer, Sun, FlaskConical, Waves, Cpu } from "lucide-react";
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from "recharts";
+import { fetchLiveSensors, fetchSensorHistory, type LiveSensorData } from "@/services/sensorService";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -17,30 +18,68 @@ export const Route = createFileRoute("/dashboard")({
     ],
   }),
   component: Dashboard,
-});
+});function Dashboard() {
+  const [liveData, setLiveData] = useState<LiveSensorData | null>(null);
+  const [isError, setIsError] = useState(false);
 
-function useLiveSeries(initial: number, min: number, max: number) {
-  const [data, setData] = useState(() =>
-    Array.from({ length: 24 }, (_, i) => ({ t: i, v: +(initial + (Math.random() - 0.5) * (max - min) * 0.2).toFixed(2) }))
-  );
+  const [phSeries, setPhSeries] = useState<{ t: number; v: number }[]>([]);
+  const [ecSeries, setEcSeries] = useState<{ t: number; v: number }[]>([]);
+  const [tempSeries, setTempSeries] = useState<{ t: number; v: number }[]>([]);
+  const [humiditySeries, setHumiditySeries] = useState<{ t: number; v: number }[]>([]);
+
   useEffect(() => {
-    const id = setInterval(() => {
-      setData((d) => {
-        const last = d[d.length - 1].v;
-        const next = Math.min(max, Math.max(min, +(last + (Math.random() - 0.5) * (max - min) * 0.08).toFixed(2)));
-        return [...d.slice(1), { t: d[d.length - 1].t + 1, v: next }];
-      });
-    }, 1500);
-    return () => clearInterval(id);
-  }, [min, max]);
-  return data;
-}
+    async function update() {
+      try {
+        const [data, history] = await Promise.all([
+          fetchLiveSensors(),
+          fetchSensorHistory(24).catch(() => []),
+        ]);
 
-function Dashboard() {
-  const ph = useLiveSeries(6.2, 5.5, 7.0);
-  const ec = useLiveSeries(1.8, 1.2, 2.4);
-  const temp = useLiveSeries(24.6, 22, 27);
-  const humidity = useLiveSeries(65, 55, 75);
+        setIsError(false);
+        setLiveData(data);
+
+        if (Array.isArray(history) && history.length > 0) {
+          setPhSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.ph })));
+          setEcSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.ec })));
+          setTempSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.temperature })));
+          setHumiditySeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.humidity })));
+        } else if (data) {
+          setPhSeries([{ t: 1, v: data.ph }]);
+          setEcSeries([{ t: 1, v: data.ec }]);
+          setTempSeries([{ t: 1, v: data.temperature }]);
+          setHumiditySeries([{ t: 1, v: data.humidity }]);
+        } else {
+          setPhSeries([]);
+          setEcSeries([]);
+          setTempSeries([]);
+          setHumiditySeries([]);
+        }
+      } catch {
+        setIsError(true);
+        setLiveData(null);
+        setPhSeries([]);
+        setEcSeries([]);
+        setTempSeries([]);
+        setHumiditySeries([]);
+      }
+    }
+
+    update();
+    const interval = setInterval(update, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const phVal = isError ? "Failed to Fetch" : liveData?.ph !== undefined && liveData.ph !== null ? liveData.ph.toFixed(1) : "--";
+  const ecVal = isError ? "Failed to Fetch" : liveData?.ec !== undefined && liveData.ec !== null ? liveData.ec.toFixed(1) : "--";
+  const tempVal = isError ? "Failed to Fetch" : liveData?.temperature !== undefined && liveData.temperature !== null ? `${liveData.temperature.toFixed(1)}°` : "--";
+  const humVal = isError ? "Failed to Fetch" : liveData?.humidity !== undefined && liveData.humidity !== null ? `${Math.round(liveData.humidity)}%` : "--";
+  const waterVal = isError ? "Failed to Fetch" : liveData?.waterLevel !== undefined && liveData.waterLevel !== null ? `${Math.round(liveData.waterLevel)}%` : "--";
+
+  const phGaugePct = liveData?.ph ? Math.min(100, Math.max(0, Math.round(((liveData.ph - 4) / 5) * 100))) : 0;
+  const ecGaugePct = liveData?.ec ? Math.min(100, Math.max(0, Math.round((liveData.ec / 3) * 100))) : 0;
+  const tempGaugePct = liveData?.temperature ? Math.min(100, Math.max(0, Math.round(((liveData.temperature - 10) / 30) * 100))) : 0;
+  const humGaugePct = liveData?.humidity ? Math.min(100, Math.max(0, Math.round(liveData.humidity))) : 0;
+  const waterGaugePct = liveData?.waterLevel ? Math.min(100, Math.max(0, Math.round(liveData.waterLevel))) : 0;
 
   return (
     <Layout>
@@ -52,28 +91,28 @@ function Dashboard() {
             <p className="mt-2 text-muted-foreground">All sensors streaming in real-time from your HydroNova unit.</p>
           </div>
           <Badge className="bg-accent/15 text-accent hover:bg-accent/15">
-            <span className="mr-2 h-2 w-2 animate-pulse rounded-full bg-accent" /> Live · synced 1s ago
+            <span className="mr-2 h-2 w-2 animate-pulse rounded-full bg-accent" /> {isError ? "Error connecting" : `Live · synced ${liveData?.updatedAt || "now"}`}
           </Badge>
         </div>
 
         <FadeIn>
           <Card className="mt-8 bg-gradient-deep p-8 text-primary-foreground shadow-glow">
             <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
-              <CircularGauge value={62} display={ph[ph.length - 1].v.toFixed(1)} label="pH Level" unit="optimal" color="oklch(0.75 0.18 200)" size={140} />
-              <CircularGauge value={72} display={ec[ec.length - 1].v.toFixed(1)} label="EC (mS/cm)" unit="nutrients" color="oklch(0.78 0.20 145)" size={140} />
-              <CircularGauge value={49} display={`${temp[temp.length - 1].v.toFixed(1)}°`} label="Temperature" unit="ideal" color="oklch(0.72 0.18 60)" size={140} />
-              <CircularGauge value={humidity[humidity.length - 1].v} display={`${Math.round(humidity[humidity.length - 1].v)}%`} label="Humidity" unit="balanced" color="oklch(0.70 0.15 230)" size={140} />
-              <CircularGauge value={84} display="84%" label="Water Tank" unit="full" color="oklch(0.65 0.18 230)" size={140} />
+              <CircularGauge value={phGaugePct} display={phVal} label="pH Level" unit="optimal" color="oklch(0.75 0.18 200)" size={140} />
+              <CircularGauge value={ecGaugePct} display={ecVal} label="EC (mS/cm)" unit="nutrients" color="oklch(0.78 0.20 145)" size={140} />
+              <CircularGauge value={tempGaugePct} display={tempVal} label="Temperature" unit="ideal" color="oklch(0.72 0.18 60)" size={140} />
+              <CircularGauge value={humGaugePct} display={humVal} label="Humidity" unit="balanced" color="oklch(0.70 0.15 230)" size={140} />
+              <CircularGauge value={waterGaugePct} display={waterVal} label="Water Tank" unit="full" color="oklch(0.65 0.18 230)" size={140} />
               <CircularGauge value={92} display="92%" label="Plant Health" unit="excellent" color="oklch(0.78 0.20 145)" size={140} />
             </div>
           </Card>
         </FadeIn>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <ChartCard title="pH trend" icon={<Droplets className="h-4 w-4" />} data={ph} stroke="oklch(0.65 0.18 230)" />
-          <ChartCard title="EC nutrient concentration" icon={<FlaskConical className="h-4 w-4" />} data={ec} stroke="oklch(0.72 0.20 145)" />
-          <ChartCard title="Temperature (°C)" icon={<Thermometer className="h-4 w-4" />} data={temp} stroke="oklch(0.72 0.18 60)" />
-          <ChartCard title="Humidity (%)" icon={<Waves className="h-4 w-4" />} data={humidity} stroke="oklch(0.70 0.15 230)" />
+          <ChartCard title="pH trend" icon={<Droplets className="h-4 w-4" />} data={phSeries} stroke="oklch(0.65 0.18 230)" />
+          <ChartCard title="EC nutrient concentration" icon={<FlaskConical className="h-4 w-4" />} data={ecSeries} stroke="oklch(0.72 0.20 145)" />
+          <ChartCard title="Temperature (°C)" icon={<Thermometer className="h-4 w-4" />} data={tempSeries} stroke="oklch(0.72 0.18 60)" />
+          <ChartCard title="Humidity (%)" icon={<Waves className="h-4 w-4" />} data={humiditySeries} stroke="oklch(0.70 0.15 230)" />
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -121,11 +160,13 @@ function Toggle({ label, defaultChecked }: { label: string; defaultChecked?: boo
 }
 
 function ChartCard({ title, icon, data, stroke }: { title: string; icon: React.ReactNode; data: { t: number; v: number }[]; stroke: string }) {
+  const latestValue = data && data.length > 0 ? data[data.length - 1].v : "--";
+
   return (
     <Card className="border-border/60 bg-card/60 p-6 backdrop-blur">
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><span className="text-accent">{icon}</span>{title}</h3>
-        <span className="font-display text-2xl font-bold">{data[data.length - 1].v}</span>
+        <span className="font-display text-2xl font-bold">{latestValue}</span>
       </div>
       <div className="mt-4 h-48">
         <ResponsiveContainer>

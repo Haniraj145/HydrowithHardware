@@ -19,7 +19,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
 
-  const verified = search.verified;
+  const verified = (search as Record<string, any>).verified;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

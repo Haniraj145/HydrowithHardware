@@ -2,11 +2,14 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $mlServicePath = Join-Path $repoRoot 'ml-service'
+$backendPath = Join-Path $repoRoot 'backend'
 $frontendPort = 3000
 $mlPort = 8001
+$backendPort = 8000
 
 $frontendProcess = $null
 $mlProcess = $null
+$backendProcess = $null
 
 function Stop-ProcessTree {
   param([System.Diagnostics.Process]$Process)
@@ -23,13 +26,16 @@ function Stop-ProcessTree {
 }
 
 try {
+  Write-Host 'Starting Express backend server...' -ForegroundColor Cyan
+  $backendProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', 'npm run dev' -WorkingDirectory $backendPath -PassThru
+
   Write-Host 'Starting ML service...' -ForegroundColor Cyan
   $mlProcess = Start-Process -FilePath (Join-Path $mlServicePath 'venv/Scripts/python.exe') -ArgumentList '-m', 'uvicorn', 'app:app', '--host', '127.0.0.1', '--port', $mlPort -WorkingDirectory $mlServicePath -PassThru
 
   Write-Host 'Starting frontend dev server...' -ForegroundColor Cyan
-  $npmPath = (Get-Command npm).Source
-  $frontendProcess = Start-Process -FilePath $npmPath -ArgumentList 'run', 'dev', '--', '--host', '0.0.0.0', '--port', $frontendPort -WorkingDirectory $repoRoot -PassThru
+  $frontendProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', 'npm run dev -- --host 0.0.0.0 --port 3000' -WorkingDirectory $repoRoot -PassThru
 
+  Write-Host "Express backend: http://127.0.0.1:$backendPort" -ForegroundColor Green
   Write-Host "ML service: http://127.0.0.1:$mlPort" -ForegroundColor Green
   Write-Host "Frontend: http://127.0.0.1:$frontendPort" -ForegroundColor Green
 
@@ -43,5 +49,8 @@ finally {
   }
   if ($null -ne $mlProcess) {
     Stop-ProcessTree $mlProcess
+  }
+  if ($null -ne $backendProcess) {
+    Stop-ProcessTree $backendProcess
   }
 }

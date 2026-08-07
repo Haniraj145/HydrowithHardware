@@ -55,7 +55,10 @@ async def predict(file: UploadFile = File(...)):
 
     result = predict_image(file_path)
 
-    result["kindwise"] = get_kindwise_analysis(file_path)
+    try:
+        result["kindwise"] = get_kindwise_analysis(file_path)
+    except Exception as e:
+        result["kindwise"] = {"available": False, "error": str(e)}
 
     os.remove(file_path)
 

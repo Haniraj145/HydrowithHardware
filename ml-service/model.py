@@ -49,4 +49,4 @@ model.load_state_dict(checkpoint["model_state_dict"])
 model.to(device)
 model.eval()
 
-print("✅ AI Model Loaded Successfully")
+print("[AI Model] Loaded Successfully")
