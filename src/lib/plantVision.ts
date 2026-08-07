@@ -49,13 +49,18 @@ async function getModel() {
     return null;
   }
   if (!model) {
-    const tf = await import("@tensorflow/tfjs");
-    const mobilenet = await import("@tensorflow-models/mobilenet");
-    await tf.ready();
-    model = await mobilenet.load({
-      version: 2,
-      alpha: 1,
-    });
+    try {
+      const tf = await import("@tensorflow/tfjs");
+      const mobilenet = await import("@tensorflow-models/mobilenet");
+      await tf.ready();
+      model = await mobilenet.load({
+        version: 2,
+        alpha: 1,
+      });
+    } catch (e) {
+      console.warn("MobileNet model failed to load:", e);
+      return null;
+    }
   }
   return model;
 }

@@ -35,7 +35,7 @@ def get_kindwise_analysis(image_path: str) -> dict:
                 "images": [image_b64],
                 "health": "all",
             },
-            timeout=20,
+            timeout=8,
         )
         response.raise_for_status()
         data = response.json()

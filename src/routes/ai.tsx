@@ -145,65 +145,56 @@ function AI() {
     setResult(null);
     setDiagnosis(null);
     setDiagnosisError(null);
-    // Analysis runs once the <img> fires onLoad, see below
+    
+    // Directly run ML diagnosis with the uploaded file
+    runMLDiagnosis(file);
+
     e.target.value = "";
+  }
+
+  async function runMLDiagnosis(file: File) {
+    setDiagnosing(true);
+    setDiagnosisError(null);
+
+    try {
+      const result = await predictDisease(file);
+      console.log("Backend ML Response:", result);
+
+      setDiagnosis({
+        diseaseName: result.disease ?? "Unknown",
+        confidence: (result.confidence ?? 0) / 100,
+        healthy: Boolean(result.healthy),
+        healthScore: result.healthy ? 100 : Math.max(0, 100 - Math.round(result.confidence ?? 0)),
+        nutrientDeficiency: result.nutrientDeficiency ?? "None",
+        colorAnalysis: result.colorAnalysis ?? "Normal",
+        dryLeaf: Boolean(result.dryLeaf),
+        severity: result.severity ?? "None",
+        risk: result.risk ?? "Low",
+        description: result.description ?? "",
+        cause: result.cause ?? "",
+        recommendation: Array.isArray(result.recommendation) ? result.recommendation : [],
+        npk: result.npk ?? { nitrogen: 0, phosphorus: 0, potassium: 0 },
+        kindwise: result.kindwise,
+      });
+    } catch (err: any) {
+      console.error("Diagnosis error:", err);
+      setDiagnosisError(err?.message || "Unable to reach the ML service.");
+    } finally {
+      setDiagnosing(false);
+    }
   }
 
   async function handleUploadedImageLoad() {
     if (!uploadedImgRef.current) return;
 
     setAnalyzing(true);
-
     try {
       const analysis = await analyzePlantImage(uploadedImgRef.current);
       setResult(analysis);
+    } catch (err) {
+      console.warn("Plant vision analysis error:", err);
     } finally {
       setAnalyzing(false);
-    }
-
-    if (!uploadedFile) return;
-
-    setDiagnosing(true);
-    setDiagnosisError(null);
-
-    try {
-      const result = await predictDisease(uploadedFile);
-
-      console.log("AI Response:", result);
-
-      console.log(result);
-
-      console.log(result);
-
-      console.log("Backend Response:", result);
-
-      setDiagnosis({
-        diseaseName: result.disease,
-        confidence: result.confidence / 100,
-
-        healthy: result.healthy,
-        healthScore: result.healthy ? 100 : Math.max(0, 100 - Math.round(result.confidence)),
-
-        nutrientDeficiency: result.nutrientDeficiency,
-        colorAnalysis: result.colorAnalysis,
-        dryLeaf: result.dryLeaf,
-
-        severity: result.severity,
-        risk: result.risk,
-
-        description: result.description,
-        cause: result.cause, // <-- ADD THIS
-
-        recommendation: result.recommendation,
-
-        npk: result.npk,
-
-        kindwise: result.kindwise,
-      });
-    } catch (err: any) {
-      setDiagnosisError(err.message);
-    } finally {
-      setDiagnosing(false);
     }
   }
 

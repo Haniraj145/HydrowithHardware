@@ -32,48 +32,56 @@ export async function recordSensorReading(input: SensorTelemetryInput): Promise<
 }
 
 export async function getLiveSensorReading(): Promise<SensorTelemetryReading | null> {
-  const dbReading = await prisma.sensorReading.findFirst({
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const dbReading = await prisma.sensorReading.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
 
-  if (!dbReading) {
+    if (!dbReading) {
+      return null;
+    }
+
+    return {
+      id: dbReading.id,
+      deviceId: dbReading.deviceId,
+      temperature: dbReading.temperature,
+      humidity: dbReading.humidity,
+      ph: dbReading.ph,
+      waterLevel: dbReading.waterLevel,
+      tds: dbReading.tds,
+      ec: dbReading.ec,
+      createdAt: dbReading.createdAt.toISOString(),
+    };
+  } catch (err) {
     return null;
   }
-
-  return {
-    id: dbReading.id,
-    deviceId: dbReading.deviceId,
-    temperature: dbReading.temperature,
-    humidity: dbReading.humidity,
-    ph: dbReading.ph,
-    waterLevel: dbReading.waterLevel,
-    tds: dbReading.tds,
-    ec: dbReading.ec,
-    createdAt: dbReading.createdAt.toISOString(),
-  };
 }
 
 export async function getSensorHistory(limit = 24): Promise<SensorTelemetryReading[]> {
-  const dbReadings = await prisma.sensorReading.findMany({
-    take: limit,
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const dbReadings = await prisma.sensorReading.findMany({
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
 
-  if (!dbReadings || dbReadings.length === 0) {
+    if (!dbReadings || dbReadings.length === 0) {
+      return [];
+    }
+
+    return dbReadings.reverse().map((r) => ({
+      id: r.id,
+      deviceId: r.deviceId,
+      temperature: r.temperature,
+      humidity: r.humidity,
+      ph: r.ph,
+      waterLevel: r.waterLevel,
+      tds: r.tds,
+      ec: r.ec,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  } catch (err) {
     return [];
   }
-
-  return dbReadings.reverse().map((r) => ({
-    id: r.id,
-    deviceId: r.deviceId,
-    temperature: r.temperature,
-    humidity: r.humidity,
-    ph: r.ph,
-    waterLevel: r.waterLevel,
-    tds: r.tds,
-    ec: r.ec,
-    createdAt: r.createdAt.toISOString(),
-  }));
 }
 
 export async function getSensorOverview(): Promise<SensorOverview | null> {
