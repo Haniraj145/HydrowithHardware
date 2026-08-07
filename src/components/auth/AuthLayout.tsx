@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Droplets } from "lucide-react";
+import { Droplets, ArrowLeft } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 interface Props {
   title: string;
@@ -10,6 +11,15 @@ interface Props {
 export default function AuthLayout({ title, subtitle, children }: Props) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Back to Home Button */}
+      <Link
+        to="/"
+        className="absolute left-6 top-6 z-20 flex items-center gap-2 rounded-xl border border-border bg-card/60 px-4 py-2.5 text-sm font-medium text-muted-foreground backdrop-blur-md transition-all duration-200 hover:border-cyan-500/40 hover:bg-card hover:text-cyan-400 hover:shadow-glow"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span>Back to Home</span>
+      </Link>
+
       {/* Background Grid */}
       <div className="absolute inset-0 ring-grid opacity-30" />
 
@@ -19,7 +29,7 @@ export default function AuthLayout({ title, subtitle, children }: Props) {
       {/* Glow 2 */}
       <div className="absolute right-0 bottom-0 h-[500px] w-[500px] rounded-full bg-green-500/20 blur-3xl" />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
