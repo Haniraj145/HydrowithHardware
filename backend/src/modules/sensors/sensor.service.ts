@@ -2,19 +2,17 @@ import { prisma } from "../../lib/prisma";
 import { SensorOverview, SensorTelemetryInput, SensorTelemetryReading } from "./sensor.types";
 
 export async function recordSensorReading(input: SensorTelemetryInput): Promise<SensorTelemetryReading> {
-  const ec = input.ec ?? (input.tds ? +(input.tds / 500).toFixed(1) : 1.6);
-  const tds = input.tds ?? Math.round(ec * 500);
   const deviceId = input.deviceId || "esp32-hydro-01";
 
   const dbReading = await prisma.sensorReading.create({
     data: {
       deviceId,
-      temperature: +input.temperature.toFixed(1),
-      humidity: +input.humidity.toFixed(1),
-      ph: +input.ph.toFixed(2),
-      waterLevel: +input.waterLevel.toFixed(1),
-      tds,
-      ec,
+      temperature: input.temperature != null ? +input.temperature.toFixed(1) : null,
+      humidity: input.humidity != null ? +input.humidity.toFixed(1) : null,
+      ph: input.ph != null ? +input.ph.toFixed(2) : null,
+      waterLevel: input.waterLevel != null ? +input.waterLevel.toFixed(1) : null,
+      tds: input.tds != null ? Math.round(Number(input.tds)) : null,
+      ec: input.ec != null ? +Number(input.ec).toFixed(2) : (input.tds != null ? +(Number(input.tds) / 500).toFixed(2) : null),
     },
   });
 
@@ -90,11 +88,11 @@ export async function getSensorOverview(): Promise<SensorOverview | null> {
     return null;
   }
 
-  const phStatus = current.ph >= 5.5 && current.ph <= 6.5 ? "Optimal" : current.ph < 5.5 ? "Low" : "High";
-  const ecStatus = current.ec >= 1.2 && current.ec <= 2.0 ? "Optimal" : current.ec < 1.2 ? "Low" : "High";
-  const tempStatus = current.temperature >= 18 && current.temperature <= 24 ? "Optimal" : "Check";
-  const humStatus = current.humidity >= 50 && current.humidity <= 70 ? "Optimal" : "Check";
-  const wlStatus = current.waterLevel >= 50 ? "Good" : "Low";
+  const phStatus = current.ph == null ? "No Data" : current.ph >= 5.5 && current.ph <= 6.5 ? "Optimal" : current.ph < 5.5 ? "Low" : "High";
+  const ecStatus = current.ec == null ? "No Data" : current.ec >= 1.2 && current.ec <= 2.0 ? "Optimal" : current.ec < 1.2 ? "Low" : "High";
+  const tempStatus = current.temperature == null ? "No Data" : current.temperature >= 18 && current.temperature <= 24 ? "Optimal" : "Check";
+  const humStatus = current.humidity == null ? "No Data" : current.humidity >= 50 && current.humidity <= 70 ? "Optimal" : "Check";
+  const wlStatus = current.waterLevel == null ? "No Data" : current.waterLevel >= 50 ? "Good" : "Low";
 
   return {
     ph: { current: current.ph, status: phStatus, range: "5.5 – 6.5" },
@@ -102,8 +100,8 @@ export async function getSensorOverview(): Promise<SensorOverview | null> {
     waterTemp: { current: current.temperature, status: tempStatus, range: "18 – 24 °C" },
     humidity: { current: current.humidity, status: humStatus, range: "50 – 70 %" },
     waterLevel: { current: current.waterLevel, status: wlStatus, range: "> 50 %" },
-    tds: { current: current.tds, status: "Normal" },
-    plantHealthScore: 84,
+    tds: { current: current.tds, status: current.tds == null ? "No Data" : "Normal" },
+    plantHealthScore: null,
   };
 }
 

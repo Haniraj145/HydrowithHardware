@@ -166,11 +166,11 @@ function LiveMonitorPage() {
     }
   }
 
-  const phDisplay = sensorsError ? "Error" : sensors?.ph !== undefined ? sensors.ph.toFixed(1) : "6.2";
-  const ecDisplay = sensorsError ? "Error" : sensors?.ec !== undefined ? `${sensors.ec.toFixed(1)} mS/cm` : "1.6 mS/cm";
-  const tempDisplay = sensorsError ? "Error" : sensors?.temperature !== undefined ? `${sensors.temperature.toFixed(1)} °C` : "22.4 °C";
-  const humDisplay = sensorsError ? "Error" : sensors?.humidity !== undefined ? `${Math.round(sensors.humidity)} %` : "62 %";
-  const waterDisplay = sensorsError ? "Error" : sensors?.waterLevel !== undefined ? `${Math.round(sensors.waterLevel)} %` : "78 %";
+  const phDisplay = sensorsError ? "Failed to Fetch" : sensors?.ph != null ? sensors.ph.toFixed(1) : "--";
+  const ecDisplay = sensorsError ? "Failed to Fetch" : sensors?.ec != null ? `${sensors.ec.toFixed(1)} mS/cm` : "--";
+  const tempDisplay = sensorsError ? "Failed to Fetch" : sensors?.temperature != null ? `${sensors.temperature.toFixed(1)} °C` : "--";
+  const humDisplay = sensorsError ? "Failed to Fetch" : sensors?.humidity != null ? `${Math.round(sensors.humidity)} %` : "--";
+  const waterDisplay = sensorsError ? "Failed to Fetch" : sensors?.waterLevel != null ? `${Math.round(sensors.waterLevel)} %` : "--";
 
   return (
     <Layout>

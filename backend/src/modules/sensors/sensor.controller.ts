@@ -1,26 +1,92 @@
 import { Request, Response } from "express";
 import { getLiveSensorReading, getSensorHistory, getSensorOverview, recordSensorReading } from "./sensor.service";
 
+// ---------------------------------------------------------------------------
+// Validation helpers
+// ---------------------------------------------------------------------------
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+/**
+ * Validate a single sensor field against a physical range.
+ * - If the field is absent (null/undefined/""), it is valid — stored as NULL.
+ * - If present, it must be a finite number within [min, max].
+ */
+function validateField(name: string, raw: unknown, min: number, max: number): ValidationError | null {
+  if (raw === undefined || raw === null || raw === "") return null; // absent → NULL, not an error
+
+  const n = Number(raw);
+  if (!isFinite(n) || isNaN(n)) {
+    return { field: name, message: `${name} must be a valid number (received: ${JSON.stringify(raw)})` };
+  }
+  if (n < min || n > max) {
+    return { field: name, message: `${name} out of range: expected ${min}–${max}, received ${n}` };
+  }
+  return null;
+}
+
+function validateSensorPayload(body: Record<string, unknown>): ValidationError[] {
+  const { temperature, humidity, ph, tds, waterLevel, ec } = body;
+  const errors: ValidationError[] = [];
+
+  // temperature — required, DHT11/DS18B20 physical range
+  if (temperature == null || temperature === "") {
+    errors.push({ field: "temperature", message: "temperature is required" });
+  } else {
+    const e = validateField("temperature", temperature, -40, 85);
+    if (e) errors.push(e);
+  }
+
+  // humidity — required, 0–100 %
+  if (humidity == null || humidity === "") {
+    errors.push({ field: "humidity", message: "humidity is required" });
+  } else {
+    const e = validateField("humidity", humidity, 0, 100);
+    if (e) errors.push(e);
+  }
+
+  // optional fields — only validated when present
+  const optE = validateField("ph", ph, 0, 14); if (optE) errors.push(optE);
+  const optT = validateField("tds", tds, 0, 9999); if (optT) errors.push(optT);
+  const optW = validateField("waterLevel", waterLevel, 0, 100); if (optW) errors.push(optW);
+  const optEC = validateField("ec", ec, 0, 20); if (optEC) errors.push(optEC);
+
+  return errors;
+}
+
+// ---------------------------------------------------------------------------
+// Route handlers
+// ---------------------------------------------------------------------------
+
 export async function handlePostReading(req: Request, res: Response) {
   try {
-    const { temperature, humidity, ph, waterLevel, tds, ec, deviceId } = req.body;
+    const body = req.body as Record<string, unknown>;
+    const { temperature, humidity, ph, waterLevel, tds, ec, deviceId } = body;
 
-    if (temperature === undefined || humidity === undefined || ph === undefined || waterLevel === undefined) {
+    // Reject corrupt or out-of-range values immediately — HTTP 400
+    const validationErrors = validateSensorPayload(body);
+    if (validationErrors.length > 0) {
       res.status(400).json({
         success: false,
-        error: "Missing required sensor fields: temperature, humidity, ph, waterLevel",
+        error: "Invalid sensor payload",
+        details: validationErrors,
       });
       return;
     }
 
+    // Only store values actually sent by the ESP32.
+    // Any field absent in the payload is written as NULL — no fallback defaults.
     const reading = await recordSensorReading({
-      temperature: Number(temperature),
-      humidity: Number(humidity),
-      ph: Number(ph),
-      waterLevel: Number(waterLevel),
-      tds: tds !== undefined ? Number(tds) : (ec !== undefined ? Math.round(Number(ec) * 500) : 0),
-      ec: ec !== undefined ? Number(ec) : (tds !== undefined ? +(Number(tds) / 500).toFixed(1) : undefined),
-      deviceId: deviceId ? String(deviceId) : "esp32-hydro-01",
+      temperature: temperature != null ? Number(temperature) : null,
+      humidity:    humidity    != null ? Number(humidity)    : null,
+      ph:          ph          != null ? Number(ph)          : null,
+      waterLevel:  waterLevel  != null ? Number(waterLevel)  : null,
+      tds:         tds         != null ? Number(tds)         : null,
+      ec:          ec          != null ? Number(ec)          : null,
+      deviceId:    deviceId ? String(deviceId) : "esp32-hydro-01",
     });
 
     res.status(201).json({

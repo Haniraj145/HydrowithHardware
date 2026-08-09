@@ -1,13 +1,13 @@
 import axios from "axios";
 
 export interface LiveSensorData {
-  ph: number;
-  ec: number;
-  temperature: number;
-  humidity: number;
-  waterLevel: number;
-  tds: number;
-  plantHealthScore: number;
+  ph: number | null;
+  ec: number | null;
+  temperature: number | null;
+  humidity: number | null;
+  waterLevel: number | null;
+  tds: number | null;
+  plantHealthScore?: number | null;
   updatedAt: string;
 }
 
@@ -31,13 +31,13 @@ export async function fetchLiveSensors(): Promise<LiveSensorData | null> {
         }
         const d = response.data.data;
         return {
-          ph: d.ph,
-          ec: d.ec ?? (d.tds ? +(d.tds / 500).toFixed(1) : 0),
-          temperature: d.temperature,
-          humidity: d.humidity,
-          waterLevel: d.waterLevel,
-          tds: d.tds ?? Math.round((d.ec || 0) * 500),
-          plantHealthScore: 84,
+          ph: d.ph ?? null,
+          ec: d.ec ?? null,
+          temperature: d.temperature ?? null,
+          humidity: d.humidity ?? null,
+          waterLevel: d.waterLevel ?? null,
+          tds: d.tds ?? null,
+          plantHealthScore: d.plantHealthScore ?? null,
           updatedAt: new Date(d.createdAt || Date.now()).toLocaleTimeString(),
         };
       }

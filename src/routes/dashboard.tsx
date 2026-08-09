@@ -69,17 +69,17 @@ export const Route = createFileRoute("/dashboard")({
     return () => clearInterval(interval);
   }, []);
 
-  const phVal = isError ? "Failed to Fetch" : liveData?.ph !== undefined && liveData.ph !== null ? liveData.ph.toFixed(1) : "--";
-  const ecVal = isError ? "Failed to Fetch" : liveData?.ec !== undefined && liveData.ec !== null ? liveData.ec.toFixed(1) : "--";
-  const tempVal = isError ? "Failed to Fetch" : liveData?.temperature !== undefined && liveData.temperature !== null ? `${liveData.temperature.toFixed(1)}°` : "--";
-  const humVal = isError ? "Failed to Fetch" : liveData?.humidity !== undefined && liveData.humidity !== null ? `${Math.round(liveData.humidity)}%` : "--";
-  const waterVal = isError ? "Failed to Fetch" : liveData?.waterLevel !== undefined && liveData.waterLevel !== null ? `${Math.round(liveData.waterLevel)}%` : "--";
+  const phVal = isError ? "Failed to Fetch" : liveData?.ph != null ? liveData.ph.toFixed(1) : "--";
+  const ecVal = isError ? "Failed to Fetch" : liveData?.ec != null ? liveData.ec.toFixed(1) : "--";
+  const tempVal = isError ? "Failed to Fetch" : liveData?.temperature != null ? `${liveData.temperature.toFixed(1)}°` : "--";
+  const humVal = isError ? "Failed to Fetch" : liveData?.humidity != null ? `${Math.round(liveData.humidity)}%` : "--";
+  const waterVal = isError ? "Failed to Fetch" : liveData?.waterLevel != null ? `${Math.round(liveData.waterLevel)}%` : "--";
 
-  const phGaugePct = liveData?.ph ? Math.min(100, Math.max(0, Math.round(((liveData.ph - 4) / 5) * 100))) : 0;
-  const ecGaugePct = liveData?.ec ? Math.min(100, Math.max(0, Math.round((liveData.ec / 3) * 100))) : 0;
-  const tempGaugePct = liveData?.temperature ? Math.min(100, Math.max(0, Math.round(((liveData.temperature - 10) / 30) * 100))) : 0;
-  const humGaugePct = liveData?.humidity ? Math.min(100, Math.max(0, Math.round(liveData.humidity))) : 0;
-  const waterGaugePct = liveData?.waterLevel ? Math.min(100, Math.max(0, Math.round(liveData.waterLevel))) : 0;
+  const phGaugePct = liveData?.ph != null ? Math.min(100, Math.max(0, Math.round(((liveData.ph - 4) / 5) * 100))) : 0;
+  const ecGaugePct = liveData?.ec != null ? Math.min(100, Math.max(0, Math.round((liveData.ec / 3) * 100))) : 0;
+  const tempGaugePct = liveData?.temperature != null ? Math.min(100, Math.max(0, Math.round(((liveData.temperature - 10) / 30) * 100))) : 0;
+  const humGaugePct = liveData?.humidity != null ? Math.min(100, Math.max(0, Math.round(liveData.humidity))) : 0;
+  const waterGaugePct = liveData?.waterLevel != null ? Math.min(100, Math.max(0, Math.round(liveData.waterLevel))) : 0;
 
   return (
     <Layout>

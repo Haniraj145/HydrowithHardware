@@ -118,12 +118,12 @@ model PasswordResetToken {
 model SensorReading {
   id          String   @id @default(cuid())
   deviceId    String   @default("esp32-hydro-01")
-  temperature Float
-  humidity    Float
-  ph          Float
-  waterLevel  Float
-  tds         Float
-  ec          Float
+  temperature Float?
+  humidity    Float?
+  ph          Float?
+  waterLevel  Float?
+  tds         Float?
+  ec          Float?
   createdAt   DateTime @default(now())
 
   @@index([createdAt])

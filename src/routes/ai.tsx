@@ -145,7 +145,7 @@ function AI() {
     setResult(null);
     setDiagnosis(null);
     setDiagnosisError(null);
-    
+
     // Directly run ML diagnosis with the uploaded file
     runMLDiagnosis(file);
 
@@ -411,9 +411,8 @@ function AI() {
                   <Card className="h-full border-border/60 bg-card/60 p-5 backdrop-blur">
                     <div className="flex items-start gap-4">
                       <span
-                        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-primary-foreground ${
-                          diagnosis.healthy ? "bg-gradient-aqua" : "bg-destructive"
-                        }`}
+                        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-primary-foreground ${diagnosis.healthy ? "bg-gradient-aqua" : "bg-destructive"
+                          }`}
                       >
                         <Stethoscope className="h-5 w-5" />
                       </span>
@@ -424,9 +423,8 @@ function AI() {
                         </p>
 
                         <p
-                          className={`mt-1 text-lg font-bold ${
-                            diagnosis.healthy ? "" : "text-destructive"
-                          }`}
+                          className={`mt-1 text-lg font-bold ${diagnosis.healthy ? "" : "text-destructive"
+                            }`}
                         >
                           {diagnosis.diseaseName}
                         </p>
@@ -439,9 +437,8 @@ function AI() {
 
                           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                             <div
-                              className={`h-full rounded-full ${
-                                diagnosis.healthy ? "bg-green-500" : "bg-red-500"
-                              }`}
+                              className={`h-full rounded-full ${diagnosis.healthy ? "bg-green-500" : "bg-red-500"
+                                }`}
                               style={{
                                 width: `${Math.round(diagnosis.confidence * 100)}%`,
                               }}
@@ -449,9 +446,7 @@ function AI() {
                           </div>
                         </div>
 
-                        <p className="mt-4 text-sm text-muted-foreground">
-                          Health Score: {diagnosis.healthScore}%
-                        </p>
+
                       </div>
                     </div>
                   </Card>
@@ -606,9 +601,8 @@ function DiagnosisCard({
   return (
     <Card className="flex h-full items-start gap-4 border-border/60 bg-card/60 p-5 backdrop-blur">
       <span
-        className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary-foreground shadow-glow ${
-          ok ? "bg-gradient-aqua" : "bg-destructive"
-        }`}
+        className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary-foreground shadow-glow ${ok ? "bg-gradient-aqua" : "bg-destructive"
+          }`}
       >
         <Icon className="h-5 w-5" />
       </span>
@@ -859,9 +853,8 @@ function KindwiseCard({ kindwise }: { kindwise: KindwiseAnalysis }) {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className={`h-full rounded-full ${
-                    kindwise.healthy ? "bg-green-500" : "bg-red-500"
-                  }`}
+                  className={`h-full rounded-full ${kindwise.healthy ? "bg-green-500" : "bg-red-500"
+                    }`}
                   style={{ width: `${Math.round(kindwise.confidence)}%` }}
                 />
               </div>
