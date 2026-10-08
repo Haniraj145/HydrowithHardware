@@ -19,7 +19,7 @@ export const Route = createFileRoute("/how-it-works")({
 function How() {
   const steps = [
     { i: Droplets, t: "Water tank setup", d: "Fill the reservoir with clean water. Sensors confirm level instantly." },
-    { i: FlaskConical, t: "Nutrient mixing", d: "The auto-doser blends a balanced N-P-K solution to optimal EC." },
+    { i: FlaskConical, t: "Nutrient mixing", d: "The auto-doser blends a balanced N-P-K solution to optimal TDS." },
     { i: Activity, t: "Pump circulation", d: "A whisper-quiet pump aerates and circulates nutrients to every root." },
     { i: Sprout, t: "Root absorption", d: "Bare roots drink directly — no soil, no waste, faster uptake." },
     { i: Camera, t: "Plant growth monitoring", d: "AI camera + sensors track leaf color, height and health 24/7." },

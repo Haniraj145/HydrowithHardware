@@ -33,7 +33,7 @@ type Farm = {
   temp: string;
   health: number;
   image: string;
-  buckets: { id: string; name: string; crop: string; ph: number; ec: number }[];
+  buckets: { id: string; name: string; crop: string; ph: number; tds: number }[];
 };
 
 const initialFarms: Farm[] = [
@@ -42,8 +42,8 @@ const initialFarms: Farm[] = [
     plants: 124, waterUsage: "12 L/day", temp: "23.4°C", health: 96,
     image: "https://th.bing.com/th/id/OIP.g84nICklA5fnZDhFV23t-QHaFS?w=264&h=189&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
     buckets: [
-      { id: "b1", name: "Bucket A1", crop: "Romaine", ph: 6.1, ec: 1.7 },
-      { id: "b2", name: "Bucket A2", crop: "Butterhead", ph: 6.3, ec: 1.8 },
+      { id: "b1", name: "Bucket A1", crop: "Romaine", ph: 6.1, tds: 850 },
+      { id: "b2", name: "Bucket A2", crop: "Butterhead", ph: 6.3, tds: 900 },
     ],
   },
   {
@@ -51,7 +51,7 @@ const initialFarms: Farm[] = [
     plants: 86, waterUsage: "9 L/day", temp: "25.1°C", health: 91,
     image: "https://images.unsplash.com/photo-1543528176-61b239494933?w=900&q=80",
     buckets: [
-      { id: "b3", name: "Bucket S1", crop: "Albion", ph: 6.0, ec: 1.5 },
+      { id: "b3", name: "Bucket S1", crop: "Albion", ph: 6.0, tds: 750 },
     ],
   },
   {
@@ -65,9 +65,9 @@ const initialFarms: Farm[] = [
     plants: 64, waterUsage: "6 L/day", temp: "22.8°C", health: 98,
     image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=900&q=80",
     buckets: [
-      { id: "b4", name: "Bucket H1", crop: "Basil", ph: 6.2, ec: 1.6 },
-      { id: "b5", name: "Bucket H2", crop: "Mint", ph: 6.4, ec: 1.5 },
-      { id: "b6", name: "Bucket H3", crop: "Cilantro", ph: 6.1, ec: 1.7 },
+      { id: "b4", name: "Bucket H1", crop: "Basil", ph: 6.2, tds: 800 },
+      { id: "b5", name: "Bucket H2", crop: "Mint", ph: 6.4, tds: 750 },
+      { id: "b6", name: "Bucket H3", crop: "Cilantro", ph: 6.1, tds: 850 },
     ],
   },
 ];
@@ -88,10 +88,10 @@ function Farms() {
   }
   function addBucket(farmId: string, name: string, crop: string) {
     setFarms((prev) => prev.map((f) => f.id === farmId
-      ? { ...f, buckets: [...f.buckets, { id: `b${Date.now()}`, name, crop, ph: 6.2, ec: 1.6 }] }
+      ? { ...f, buckets: [...f.buckets, { id: `b${Date.now()}`, name, crop, ph: 6.2, tds: 800 }] }
       : f));
     setActiveFarm((f) => f && f.id === farmId
-      ? { ...f, buckets: [...f.buckets, { id: `b${Date.now()}`, name, crop, ph: 6.2, ec: 1.6 }] }
+      ? { ...f, buckets: [...f.buckets, { id: `b${Date.now()}`, name, crop, ph: 6.2, tds: 800 }] }
       : f);
   }
 
@@ -219,7 +219,7 @@ function BucketsDialog({ farm, onOpenChange, onAddBucket }: { farm: Farm | null;
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                       <span>pH <span className="font-semibold text-foreground">{b.ph}</span></span>
-                      <span>EC <span className="font-semibold text-foreground">{b.ec}</span></span>
+                      <span>TDS <span className="font-semibold text-foreground">{b.tds} ppm</span></span>
                     </div>
                   </motion.div>
                 ))}

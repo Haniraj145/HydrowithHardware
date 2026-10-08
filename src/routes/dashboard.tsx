@@ -14,16 +14,18 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "Live Dashboard — HydroNova" },
-      { name: "description", content: "Real-time IoT monitoring of pH, EC, temperature, humidity, water and pumps for your HydroNova system." },
+      { name: "description", content: "Real-time IoT monitoring of pH, TDS, temperature, humidity, water and pumps for your HydroNova system." },
     ],
   }),
   component: Dashboard,
-});function Dashboard() {
+});
+
+function Dashboard() {
   const [liveData, setLiveData] = useState<LiveSensorData | null>(null);
   const [isError, setIsError] = useState(false);
 
   const [phSeries, setPhSeries] = useState<{ t: number; v: number }[]>([]);
-  const [ecSeries, setEcSeries] = useState<{ t: number; v: number }[]>([]);
+  const [tdsSeries, setTdsSeries] = useState<{ t: number; v: number }[]>([]);
   const [tempSeries, setTempSeries] = useState<{ t: number; v: number }[]>([]);
   const [humiditySeries, setHumiditySeries] = useState<{ t: number; v: number }[]>([]);
 
@@ -39,18 +41,18 @@ export const Route = createFileRoute("/dashboard")({
         setLiveData(data);
 
         if (Array.isArray(history) && history.length > 0) {
-          setPhSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.ph })));
-          setEcSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.ec })));
-          setTempSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.temperature })));
-          setHumiditySeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.humidity })));
+          setPhSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.ph ?? 0 })));
+          setTdsSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.tds ?? 0 })));
+          setTempSeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.temperature ?? 0 })));
+          setHumiditySeries(history.map((h: any, idx: number) => ({ t: idx + 1, v: h.humidity ?? 0 })));
         } else if (data) {
-          setPhSeries([{ t: 1, v: data.ph }]);
-          setEcSeries([{ t: 1, v: data.ec }]);
-          setTempSeries([{ t: 1, v: data.temperature }]);
-          setHumiditySeries([{ t: 1, v: data.humidity }]);
+          setPhSeries(data.ph !== null ? [{ t: 1, v: data.ph }] : []);
+          setTdsSeries(data.tds !== null ? [{ t: 1, v: data.tds }] : []);
+          setTempSeries(data.temperature !== null ? [{ t: 1, v: data.temperature }] : []);
+          setHumiditySeries(data.humidity !== null ? [{ t: 1, v: data.humidity }] : []);
         } else {
           setPhSeries([]);
-          setEcSeries([]);
+          setTdsSeries([]);
           setTempSeries([]);
           setHumiditySeries([]);
         }
@@ -58,25 +60,25 @@ export const Route = createFileRoute("/dashboard")({
         setIsError(true);
         setLiveData(null);
         setPhSeries([]);
-        setEcSeries([]);
+        setTdsSeries([]);
         setTempSeries([]);
         setHumiditySeries([]);
       }
     }
 
     update();
-    const interval = setInterval(update, 2500);
+    const interval = setInterval(update, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  const phVal = isError ? "Failed to Fetch" : liveData?.ph != null ? liveData.ph.toFixed(1) : "--";
-  const ecVal = isError ? "Failed to Fetch" : liveData?.ec != null ? liveData.ec.toFixed(1) : "--";
-  const tempVal = isError ? "Failed to Fetch" : liveData?.temperature != null ? `${liveData.temperature.toFixed(1)}°` : "--";
-  const humVal = isError ? "Failed to Fetch" : liveData?.humidity != null ? `${Math.round(liveData.humidity)}%` : "--";
-  const waterVal = isError ? "Failed to Fetch" : liveData?.waterLevel != null ? `${Math.round(liveData.waterLevel)}%` : "--";
+  const phVal = isError ? "Error" : liveData?.ph != null ? `${liveData.ph.toFixed(2)} pH` : "--";
+  const tempVal = isError ? "Error" : liveData?.temperature != null ? `${liveData.temperature.toFixed(1)} °C` : "--";
+  const humVal = isError ? "Error" : liveData?.humidity != null ? `${Math.round(liveData.humidity)} %` : "--";
+  const waterVal = isError ? "Error" : liveData?.waterLevel != null ? `${Math.round(liveData.waterLevel)} %` : "--";
+  const tdsVal = isError ? "Error" : liveData?.tds != null ? `${Math.round(liveData.tds)} ppm` : "--";
 
   const phGaugePct = liveData?.ph != null ? Math.min(100, Math.max(0, Math.round(((liveData.ph - 4) / 5) * 100))) : 0;
-  const ecGaugePct = liveData?.ec != null ? Math.min(100, Math.max(0, Math.round((liveData.ec / 3) * 100))) : 0;
+  const tdsGaugePct = liveData?.tds != null ? Math.min(100, Math.max(0, Math.round((liveData.tds / 2000) * 100))) : 0;
   const tempGaugePct = liveData?.temperature != null ? Math.min(100, Math.max(0, Math.round(((liveData.temperature - 10) / 30) * 100))) : 0;
   const humGaugePct = liveData?.humidity != null ? Math.min(100, Math.max(0, Math.round(liveData.humidity))) : 0;
   const waterGaugePct = liveData?.waterLevel != null ? Math.min(100, Math.max(0, Math.round(liveData.waterLevel))) : 0;
@@ -99,7 +101,7 @@ export const Route = createFileRoute("/dashboard")({
           <Card className="mt-8 bg-gradient-deep p-8 text-primary-foreground shadow-glow">
             <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
               <CircularGauge value={phGaugePct} display={phVal} label="pH Level" unit="optimal" color="oklch(0.75 0.18 200)" size={140} />
-              <CircularGauge value={ecGaugePct} display={ecVal} label="EC (mS/cm)" unit="nutrients" color="oklch(0.78 0.20 145)" size={140} />
+              <CircularGauge value={tdsGaugePct} display={tdsVal} label="TDS Level" unit="nutrients" color="oklch(0.78 0.20 145)" size={140} />
               <CircularGauge value={tempGaugePct} display={tempVal} label="Temperature" unit="ideal" color="oklch(0.72 0.18 60)" size={140} />
               <CircularGauge value={humGaugePct} display={humVal} label="Humidity" unit="balanced" color="oklch(0.70 0.15 230)" size={140} />
               <CircularGauge value={waterGaugePct} display={waterVal} label="Water Tank" unit="full" color="oklch(0.65 0.18 230)" size={140} />
@@ -110,7 +112,7 @@ export const Route = createFileRoute("/dashboard")({
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <ChartCard title="pH trend" icon={<Droplets className="h-4 w-4" />} data={phSeries} stroke="oklch(0.65 0.18 230)" />
-          <ChartCard title="EC nutrient concentration" icon={<FlaskConical className="h-4 w-4" />} data={ecSeries} stroke="oklch(0.72 0.20 145)" />
+          <ChartCard title="TDS nutrient concentration" icon={<FlaskConical className="h-4 w-4" />} data={tdsSeries} stroke="oklch(0.72 0.20 145)" />
           <ChartCard title="Temperature (°C)" icon={<Thermometer className="h-4 w-4" />} data={tempSeries} stroke="oklch(0.72 0.18 60)" />
           <ChartCard title="Humidity (%)" icon={<Waves className="h-4 w-4" />} data={humiditySeries} stroke="oklch(0.70 0.15 230)" />
         </div>

@@ -29,10 +29,15 @@ function validateField(name: string, raw: unknown, min: number, max: number): Va
 }
 
 function validateSensorPayload(body: Record<string, unknown>): ValidationError[] {
-  const { temperature, humidity, ph, tds, waterLevel, ec } = body;
+  const { deviceId, temperature, humidity, ph, tds, waterLevel, ec } = body;
   const errors: ValidationError[] = [];
 
-  // temperature — required, DHT11/DS18B20 physical range
+  // deviceId — required string
+  if (!deviceId || typeof deviceId !== "string" || deviceId.trim() === "") {
+    errors.push({ field: "deviceId", message: "deviceId is required" });
+  }
+
+  // temperature — required, DHT11/DS18B20 physical range (-40 to 85 °C)
   if (temperature == null || temperature === "") {
     errors.push({ field: "temperature", message: "temperature is required" });
   } else {
@@ -48,9 +53,23 @@ function validateSensorPayload(body: Record<string, unknown>): ValidationError[]
     if (e) errors.push(e);
   }
 
+  // ph — required, 0–14 pH
+  if (ph == null || ph === "") {
+    errors.push({ field: "ph", message: "ph is required" });
+  } else {
+    const e = validateField("ph", ph, 0, 14);
+    if (e) errors.push(e);
+  }
+
+  // tds — required, 0–9999 ppm
+  if (tds == null || tds === "") {
+    errors.push({ field: "tds", message: "tds is required" });
+  } else {
+    const e = validateField("tds", tds, 0, 9999);
+    if (e) errors.push(e);
+  }
+
   // optional fields — only validated when present
-  const optE = validateField("ph", ph, 0, 14); if (optE) errors.push(optE);
-  const optT = validateField("tds", tds, 0, 9999); if (optT) errors.push(optT);
   const optW = validateField("waterLevel", waterLevel, 0, 100); if (optW) errors.push(optW);
   const optEC = validateField("ec", ec, 0, 20); if (optEC) errors.push(optEC);
 
@@ -78,19 +97,20 @@ export async function handlePostReading(req: Request, res: Response) {
     }
 
     // Only store values actually sent by the ESP32.
-    // Any field absent in the payload is written as NULL — no fallback defaults.
+    // Any optional field absent in the payload is written as NULL — no fallback defaults.
     const reading = await recordSensorReading({
-      temperature: temperature != null ? Number(temperature) : null,
-      humidity:    humidity    != null ? Number(humidity)    : null,
-      ph:          ph          != null ? Number(ph)          : null,
-      waterLevel:  waterLevel  != null ? Number(waterLevel)  : null,
-      tds:         tds         != null ? Number(tds)         : null,
-      ec:          ec          != null ? Number(ec)          : null,
-      deviceId:    deviceId ? String(deviceId) : "esp32-hydro-01",
+      temperature: Number(temperature),
+      humidity:    Number(humidity),
+      ph:          Number(ph),
+      tds:         Number(tds),
+      waterLevel:  waterLevel != null ? Number(waterLevel) : null,
+      ec:          ec != null ? Number(ec) : null,
+      deviceId:    String(deviceId),
     });
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
+      message: "Sensor reading saved",
       data: reading,
     });
   } catch (err: any) {

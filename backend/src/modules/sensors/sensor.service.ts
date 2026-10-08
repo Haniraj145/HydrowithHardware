@@ -12,7 +12,7 @@ export async function recordSensorReading(input: SensorTelemetryInput): Promise<
       ph: input.ph != null ? +input.ph.toFixed(2) : null,
       waterLevel: input.waterLevel != null ? +input.waterLevel.toFixed(1) : null,
       tds: input.tds != null ? Math.round(Number(input.tds)) : null,
-      ec: input.ec != null ? +Number(input.ec).toFixed(2) : (input.tds != null ? +(Number(input.tds) / 500).toFixed(2) : null),
+      ec: input.ec != null ? +Number(input.ec).toFixed(2) : null,
     },
   });
 

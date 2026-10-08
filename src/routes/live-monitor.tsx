@@ -96,18 +96,14 @@ function LiveMonitorPage() {
     async function loadSensors() {
       try {
         const data = await fetchLiveSensors();
-        if (data) {
-          setSensors(data);
-          setSensorsError(false);
-        } else {
-          setSensorsError(true);
-        }
+        setSensors(data);
+        setSensorsError(false);
       } catch {
         setSensorsError(true);
       }
     }
     loadSensors();
-    const interval = setInterval(loadSensors, 2500);
+    const interval = setInterval(loadSensors, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -166,11 +162,11 @@ function LiveMonitorPage() {
     }
   }
 
-  const phDisplay = sensorsError ? "Failed to Fetch" : sensors?.ph != null ? sensors.ph.toFixed(1) : "--";
-  const ecDisplay = sensorsError ? "Failed to Fetch" : sensors?.ec != null ? `${sensors.ec.toFixed(1)} mS/cm` : "--";
-  const tempDisplay = sensorsError ? "Failed to Fetch" : sensors?.temperature != null ? `${sensors.temperature.toFixed(1)} °C` : "--";
-  const humDisplay = sensorsError ? "Failed to Fetch" : sensors?.humidity != null ? `${Math.round(sensors.humidity)} %` : "--";
-  const waterDisplay = sensorsError ? "Failed to Fetch" : sensors?.waterLevel != null ? `${Math.round(sensors.waterLevel)} %` : "--";
+  const phDisplay = sensorsError ? "Error" : sensors?.ph != null ? `${sensors.ph.toFixed(2)} pH` : "--";
+  const tdsDisplay = sensorsError ? "Error" : sensors?.tds != null ? `${Math.round(sensors.tds)} ppm` : "--";
+  const tempDisplay = sensorsError ? "Error" : sensors?.temperature != null ? `${sensors.temperature.toFixed(1)} °C` : "--";
+  const humDisplay = sensorsError ? "Error" : sensors?.humidity != null ? `${Math.round(sensors.humidity)} %` : "--";
+  const waterDisplay = sensorsError ? "Error" : sensors?.waterLevel != null ? `${Math.round(sensors.waterLevel)} %` : "--";
 
   return (
     <Layout>
@@ -220,10 +216,10 @@ function LiveMonitorPage() {
           />
           <SensorCard
             icon={<Zap className="h-5 w-5 text-purple-400" />}
-            label="EC Level"
-            value={ecDisplay}
+            label="TDS Level"
+            value={tdsDisplay}
             status="Optimal"
-            range="1.2 – 2.0"
+            range="500 – 1000 ppm"
           />
           <SensorCard
             icon={<Thermometer className="h-5 w-5 text-amber-400" />}
@@ -465,8 +461,8 @@ function LiveMonitorPage() {
                 <AlertItem
                   icon={<Droplets className="h-4 w-4 text-cyan-400" />}
                   bg="bg-cyan-500/10 border-cyan-500/20"
-                  title="Low Nutrient (EC)"
-                  sub="Current: 0.8 mS/cm"
+                  title="Low Nutrient (TDS)"
+                  sub="Current: 450 ppm"
                   time="10:15 AM"
                 />
               </div>
@@ -489,7 +485,7 @@ function LiveMonitorPage() {
                     <span className="text-emerald-400 font-bold">•</span> Maintain humidity below 65%
                   </li>
                   <li className="flex items-center gap-1.5">
-                    <span className="text-emerald-400 font-bold">•</span> Check pH and EC levels
+                    <span className="text-emerald-400 font-bold">•</span> Check pH and TDS levels
                   </li>
                   <li className="flex items-center gap-1.5">
                     <span className="text-emerald-400 font-bold">•</span> Remove affected leaves

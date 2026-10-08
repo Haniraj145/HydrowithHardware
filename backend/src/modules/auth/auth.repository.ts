@@ -15,6 +15,16 @@ export class AuthRepository {
     return prisma.user.create({ data });
   }
 
+  async updateUser(
+    id: string,
+    data: { fullName?: string; passwordHash?: string }
+  ) {
+    return prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
   async createRefreshToken(data: {
     token: string;
     expiresAt: Date;
@@ -70,6 +80,12 @@ export class AuthRepository {
   async deleteEmailVerificationToken(token: string) {
     return prisma.emailVerificationToken.delete({
       where: { token },
+    });
+  }
+
+  async deleteEmailVerificationTokensByUserId(userId: string) {
+    return prisma.emailVerificationToken.deleteMany({
+      where: { userId },
     });
   }
 

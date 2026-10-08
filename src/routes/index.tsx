@@ -66,7 +66,7 @@ function Hero({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }}
             className="mt-5 max-w-xl text-lg text-muted-foreground"
           >
-            A connected hydroponics system that monitors pH, EC, temperature & humidity in real-time,
+            A connected hydroponics system that monitors pH, TDS, temperature & humidity in real-time,
             auto-feeds your plants, and uses AI vision to detect disease before it spreads.
           </motion.p>
           <motion.div
@@ -185,7 +185,7 @@ function DashboardPreview() {
           <Card className="bg-gradient-deep p-8 text-primary-foreground shadow-glow">
             <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
               <CircularGauge value={62} display="6.2" label="pH Level" unit="optimal" color="oklch(0.75 0.18 200)" />
-              <CircularGauge value={72} display="1.8" label="EC Level" unit="mS/cm" color="oklch(0.78 0.20 145)" />
+              <CircularGauge value={72} display="720 ppm" label="TDS Level" unit="ppm" color="oklch(0.78 0.20 145)" />
               <CircularGauge value={49} display="24.6°" label="Temperature" unit="ideal" color="oklch(0.72 0.18 60)" />
               <CircularGauge value={65} display="65%" label="Humidity" unit="balanced" color="oklch(0.70 0.15 230)" />
               <CircularGauge value={84} display="84%" label="Water Tank" unit="full" color="oklch(0.65 0.18 230)" />
@@ -241,7 +241,7 @@ function AISection() {
     { i: Bug, t: "Plant disease detection", d: "Computer vision flags spots, wilt and pests early." },
     { i: LineChart, t: "Growth prediction", d: "ML forecasts yield & ideal harvest day." },
     { i: Droplets, t: "Auto watering", d: "Pumps trigger only when plants actually need water." },
-    { i: FlaskConical, t: "Smart nutrient control", d: "Doser balances NPK & EC automatically." },
+    { i: FlaskConical, t: "Smart nutrient control", d: "Doser balances NPK & TDS automatically." },
     { i: Bell, t: "Mobile notifications", d: "Real-time alerts on your phone, anywhere." },
     { i: Bot, t: "Self-learning", d: "Improves recommendations from every grow cycle." },
   ];

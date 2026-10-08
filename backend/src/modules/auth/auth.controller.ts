@@ -100,6 +100,24 @@ class AuthController {
       next(error);
     }
   }
+
+  async resendVerification(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res
+          .status(400)
+          .json(ApiResponse.error("Email is required"));
+      }
+
+      const result = await authService.resendVerification(email);
+
+      return res.status(200).json(ApiResponse.success(result.message));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

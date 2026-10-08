@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../../../lib/prisma";
+
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:8080";
 
 export async function verifyEmail(req: Request, res: Response) {
   try {
     const token = req.query.token as string;
 
     if (!token) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL || "http://localhost:3000"}/login?verified=false`
-      );
+      return res.redirect(`${CLIENT_URL}/login?verified=false`);
     }
 
     const record = await prisma.emailVerificationToken.findUnique({
@@ -16,15 +16,11 @@ export async function verifyEmail(req: Request, res: Response) {
     });
 
     if (!record) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL || "http://localhost:3000"}/login?verified=false`
-      );
+      return res.redirect(`${CLIENT_URL}/login?verified=false`);
     }
 
     if (record.expiresAt < new Date()) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL || "http://localhost:3000"}/login?verified=expired`
-      );
+      return res.redirect(`${CLIENT_URL}/login?verified=expired`);
     }
 
     await prisma.user.update({
@@ -42,15 +38,11 @@ export async function verifyEmail(req: Request, res: Response) {
       },
     });
 
-    return res.redirect(
-      `${process.env.FRONTEND_URL || "http://localhost:3000"}/login?verified=true`
-    );
+    return res.redirect(`${CLIENT_URL}/login?verified=true`);
 
   } catch (err) {
     console.error(err);
 
-    return res.redirect(
-      `${process.env.FRONTEND_URL || "http://localhost:3000"}/login?verified=false`
-    );
+    return res.redirect(`${CLIENT_URL}/login?verified=false`);
   }
 }

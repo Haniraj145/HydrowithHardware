@@ -21,17 +21,29 @@ class AuthService {
   }) {
     const existingUser = await authRepository.findByEmail(data.email);
 
+    let user;
     if (existingUser) {
-      throw new AppError("Email already exists", 409);
+      if (existingUser.isVerified) {
+        throw new AppError("Email already exists", 409);
+      }
+
+      // Account exists but is unverified: update user info & replace verification token
+      const passwordHash = await hashPassword(data.password);
+      user = await authRepository.updateUser(existingUser.id, {
+        fullName: data.fullName,
+        passwordHash,
+      });
+
+      await authRepository.deleteEmailVerificationTokensByUserId(user.id);
+    } else {
+      const passwordHash = await hashPassword(data.password);
+
+      user = await authRepository.createUser({
+        fullName: data.fullName,
+        email: data.email,
+        passwordHash,
+      });
     }
-
-    const passwordHash = await hashPassword(data.password);
-
-    const user = await authRepository.createUser({
-      fullName: data.fullName,
-      email: data.email,
-      passwordHash,
-    });
 
     const verificationToken = uuid();
 
@@ -109,6 +121,40 @@ class AuthService {
     await authRepository.deleteEmailVerificationToken(token);
 
     return { message: "Email verified successfully" };
+  }
+
+  async resendVerification(email: string) {
+    const user = await authRepository.findByEmail(email);
+
+    // Silent no-op for unknown emails (avoid user enumeration)
+    if (!user) {
+      return {
+        message:
+          "If an unverified account with that email exists, a new verification link has been sent.",
+      };
+    }
+
+    if (user.isVerified) {
+      return { message: "This email is already verified. You can log in." };
+    }
+
+    // Delete existing tokens before creating a fresh one
+    await authRepository.deleteEmailVerificationTokensByUserId(user.id);
+
+    const verificationToken = uuid();
+
+    await authRepository.createEmailVerificationToken({
+      token: verificationToken,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+    });
+
+    await sendVerificationEmail(user.email, verificationToken);
+
+    return {
+      message:
+        "If an unverified account with that email exists, a new verification link has been sent.",
+    };
   }
 
   async refresh(refreshToken: string) {

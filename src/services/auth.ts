@@ -36,3 +36,8 @@ export const resetPassword = (
     password,
   });
 };
+
+// RESEND VERIFICATION EMAIL
+export const resendVerification = (email: string) => {
+  return axios.post(`${API}/resend-verification`, { email });
+};

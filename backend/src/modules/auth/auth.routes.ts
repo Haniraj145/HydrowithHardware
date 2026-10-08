@@ -40,9 +40,16 @@ router.get(
   authController.me
 );
 
+// Email verification — uses redirect-based controller so clicking the link
+// in the email redirects the browser to the frontend with a status query param
 router.get(
   "/verify-email",
-  authController.verifyEmail
+  verifyEmail
+);
+
+router.post(
+  "/resend-verification",
+  authController.resendVerification
 );
 
 router.post(

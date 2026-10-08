@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,15 +28,13 @@ function SignupPage() {
     try {
       setLoading(true);
 
-      const res = await signup({
+      await signup({
         fullName,
         email,
         password,
       });
 
-      alert(res.data.message || "Registration successful. Please verify your email.");
-
-      window.location.href = "/login";
+      navigate({ to: "/verify-email", search: { email } });
     } catch (err: any) {
       alert(err.response?.data?.message || "Signup failed");
     } finally {
