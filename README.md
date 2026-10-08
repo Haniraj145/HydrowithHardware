@@ -103,31 +103,7 @@ git clone https://github.com/Haniraj145/HydrowithHardware.git
 cd HydrowithHardware
 ```
 
-### 2. Configure Environment Variables
 
-#### Backend (`backend/.env`)
-Create a `.env` file inside the `backend` directory:
-
-```env
-PORT=8000
-DATABASE_URL="postgresql://user:password@localhost:5432/hydronova?schema=public"
-JWT_SECRET="your_jwt_secret_key"
-FRONTEND_URL="http://localhost:3000"
-
-# Email Verification (SMTP)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="your_email@gmail.com"
-SMTP_PASS="your_app_password"
-```
-
-#### ML Service (`ml-service/.env`)
-Create a `.env` file inside the `ml-service` directory (optional):
-
-```env
-PORT=8001
-HOST=127.0.0.1
-```
 
 ### 3. Install Dependencies & Setup Database
 
